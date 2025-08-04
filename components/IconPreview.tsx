@@ -22,6 +22,7 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
   const [iconWidth, setIconWidth] = useState(24)
   const [iconHeight, setIconHeight] = useState(24)
   const [isEditing, setIsEditing] = useState(false)
+  const [exportFormat, setExportFormat] = useState<'svg' | 'png'>('svg')
   const isMounted = useRef(false)
   
   // Helper function to get the correct URL for an icon
@@ -137,45 +138,92 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
     }
   }
 
-  const downloadIcon = () => {
-    if (icon && svgContent) {
-      // Create a Blob from the SVG content
-      const blob = new Blob([svgContent], { type: 'image/svg+xml' })
-      const url = URL.createObjectURL(blob)
+  // Function to convert SVG to PNG
+  const svgToPng = (svgString: string, width: number, height: number): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
       
-      // Create a download link
-      const link = document.createElement('a')
-      link.href = url
-      link.download = icon.filename || `${icon.name}.svg`
-      document.body.appendChild(link)
-      link.click()
+      if (!ctx) {
+        reject(new Error('Could not get canvas context'))
+        return
+      }
       
-      // Clean up
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
-      toast.success('Icon downloaded!')
-    } else if (icon) {
-      // Fallback if SVG content is not available
-      const link = document.createElement('a')
-      const downloadUrl = icon.githubPath || getIconUrl(icon)
+      // Set canvas size (use higher resolution for better quality)
+      const scale = 4
+      canvas.width = width * scale
+      canvas.height = height * scale
+      ctx.scale(scale, scale)
       
-      // Use fetch to get the content as a blob
-      fetch(downloadUrl)
-        .then(response => response.blob())
-        .then(blob => {
-          const url = URL.createObjectURL(blob)
-          link.href = url
-          link.download = icon.filename || `${icon.name}.svg`
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
-          URL.revokeObjectURL(url)
-          toast.success('Icon downloaded!')
-        })
-        .catch(error => {
-          console.error('Error downloading icon:', error)
-          toast.error('Failed to download icon')
-        })
+      const img = new Image()
+      
+      img.onload = () => {
+        // Fill with transparent background
+        ctx.clearRect(0, 0, width, height)
+        
+        // Draw the SVG
+        ctx.drawImage(img, 0, 0, width, height)
+        
+        // Convert canvas to blob
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob)
+          } else {
+            reject(new Error('Failed to create PNG blob'))
+          }
+        }, 'image/png')
+      }
+      
+      img.onerror = () => {
+        reject(new Error('Failed to load SVG image'))
+      }
+      
+      // Create data URL from SVG
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' })
+      const url = URL.createObjectURL(svgBlob)
+      img.src = url
+    })
+  }
+
+  const downloadIcon = async () => {
+    if (!icon || !svgContent) {
+      toast.error('No icon content available')
+      return
+    }
+
+    try {
+      if (exportFormat === 'png') {
+        // Convert SVG to PNG
+        const pngBlob = await svgToPng(svgContent, iconWidth * 8, iconHeight * 8) // Higher resolution
+        const url = URL.createObjectURL(pngBlob)
+        
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `${icon.name}.png`
+        document.body.appendChild(link)
+        link.click()
+        
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+        toast.success('PNG downloaded!')
+      } else {
+        // Download as SVG
+        const blob = new Blob([svgContent], { type: 'image/svg+xml' })
+        const url = URL.createObjectURL(blob)
+        
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `${icon.name}.svg`
+        document.body.appendChild(link)
+        link.click()
+        
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+        toast.success('SVG downloaded!')
+      }
+    } catch (error) {
+      console.error('Download failed:', error)
+      toast.error('Download failed. Please try again.')
     }
   }
 
@@ -184,10 +232,66 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
     if (!svgContent) return
     
     let updatedSvg = svgContent
-    // Replace fill colors
-    updatedSvg = updatedSvg.replace(/fill="[^"]*"/g, `fill="${newColor}"`)
-    // Also handle stroke colors if needed
-    updatedSvg = updatedSvg.replace(/stroke="[^"]*"/g, `stroke="${newColor}"`)
+    
+    // Handle different SVG types:
+    // - Solid: fill colors only
+    // - Stroke: stroke colors only, keep fill="none"
+    // - Bulk: mix of fill colors and opacity
+    // - Duotone: two colors (primary and secondary)
+    // - Twotone: similar to duotone but different structure
+    
+    const hasStroke = updatedSvg.includes('stroke="') && !updatedSvg.includes('stroke="none"')
+    const hasFill = /fill="#[0-9A-Fa-f]{3,6}"/i.test(updatedSvg) // Check for actual hex color fills
+    const hasOpacity = updatedSvg.includes('opacity="')
+    
+    // Check if this is a duotone SVG (has both D4D7E0 and 141B34)
+    const isDuotone = (updatedSvg.includes('#D4D7E0') || updatedSvg.includes('#d4d7e0')) && (updatedSvg.includes('#141B34') || updatedSvg.includes('#141b34'))
+    
+    if (isDuotone) {
+      // For Duotone: Handle background and strokes separately
+      // Create a much lighter version of the new color for backgrounds
+      const hex = newColor.replace('#', '')
+      const r = parseInt(hex.substr(0, 2), 16)
+      const g = parseInt(hex.substr(2, 2), 16)
+      const b = parseInt(hex.substr(4, 2), 16)
+      
+      // Create light version by mixing with white (85% white + 15% color)
+      const lightR = Math.round(255 * 0.85 + r * 0.15)
+      const lightG = Math.round(255 * 0.85 + g * 0.15)
+      const lightB = Math.round(255 * 0.85 + b * 0.15)
+      
+      const lightColor = `#${lightR.toString(16).padStart(2, '0')}${lightG.toString(16).padStart(2, '0')}${lightB.toString(16).padStart(2, '0')}`
+      
+      // Update background fills to light color
+      updatedSvg = updatedSvg.replace(/fill="#D4D7E0"/gi, `fill="${lightColor}"`)
+      
+      // Update dark strokes to main color
+      updatedSvg = updatedSvg.replace(/stroke="#141B34"/gi, `stroke="${newColor}"`)
+      updatedSvg = updatedSvg.replace(/fill="#141B34"/gi, `fill="${newColor}"`)
+    } else {
+      // For non-duotone: Use normal color replacement
+      
+      // Always update stroke colors if they exist
+      if (hasStroke) {
+        updatedSvg = updatedSvg.replace(/stroke="#[0-9A-Fa-f]{6}"/g, `stroke="${newColor}"`)
+        updatedSvg = updatedSvg.replace(/stroke="#[0-9A-Fa-f]{3}"/g, `stroke="${newColor}"`)
+      }
+      
+      // Always update fill colors if they exist
+      if (hasFill) {
+        // Replace ALL hex color fills (6-digit and 3-digit)
+        updatedSvg = updatedSvg.replace(/fill="#[0-9A-Fa-f]{6}"/g, `fill="${newColor}"`)
+        updatedSvg = updatedSvg.replace(/fill="#[0-9A-Fa-f]{3}"/g, `fill="${newColor}"`)
+      }
+    }
+    
+    // Fallback: if no colors found, add fill to common elements
+    if (!hasStroke && !hasFill) {
+      updatedSvg = updatedSvg.replace(/<path(?![^>]*(?:fill|stroke)=)/g, `<path fill="${newColor}"`)
+      updatedSvg = updatedSvg.replace(/<circle(?![^>]*(?:fill|stroke)=)/g, `<circle fill="${newColor}"`)
+      updatedSvg = updatedSvg.replace(/<rect(?![^>]*(?:fill|stroke)=)/g, `<rect fill="${newColor}"`)
+      updatedSvg = updatedSvg.replace(/<ellipse(?![^>]*(?:fill|stroke)=)/g, `<ellipse fill="${newColor}"`)
+    }
     
     setSvgContent(updatedSvg)
     setEditedSvgContent(updatedSvg)
@@ -220,21 +324,46 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
     }
   }
 
-  // Function to export edited SVG
-  const exportEditedSvg = () => {
-    if (icon && editedSvgContent) {
-      const blob = new Blob([editedSvgContent], { type: 'image/svg+xml' })
-      const url = URL.createObjectURL(blob)
-      
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `${icon.name}-edited.svg`
-      document.body.appendChild(link)
-      link.click()
-      
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
-      toast.success('Edited icon exported!')
+  // Function to export edited icon (SVG or PNG)
+  const exportEditedIcon = async () => {
+    if (!icon || !editedSvgContent) {
+      toast.error('No edited content available')
+      return
+    }
+
+    try {
+      if (exportFormat === 'png') {
+        // Convert edited SVG to PNG
+        const pngBlob = await svgToPng(editedSvgContent, iconWidth * 8, iconHeight * 8)
+        const url = URL.createObjectURL(pngBlob)
+        
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `${icon.name}-edited.png`
+        document.body.appendChild(link)
+        link.click()
+        
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+        toast.success('Edited PNG exported!')
+      } else {
+        // Export as SVG
+        const blob = new Blob([editedSvgContent], { type: 'image/svg+xml' })
+        const url = URL.createObjectURL(blob)
+        
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `${icon.name}-edited.svg`
+        document.body.appendChild(link)
+        link.click()
+        
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+        toast.success('Edited SVG exported!')
+      }
+    } catch (error) {
+      console.error('Export failed:', error)
+      toast.error('Export failed. Please try again.')
     }
   }
 
@@ -318,30 +447,45 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={downloadIcon}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Download</span>
-                </button>
+              <div className="space-y-3">
+                {/* Format Selector */}
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Export Format:</label>
+                  <select
+                    value={exportFormat}
+                    onChange={(e) => setExportFormat(e.target.value as 'svg' | 'png')}
+                    className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200"
+                  >
+                    <option value="svg">SVG</option>
+                    <option value="png">PNG</option>
+                  </select>
+                </div>
                 
-                <button
-                  onClick={copyPath}
-                  className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                >
-                  <Copy className="w-4 h-4" />
-                  <span>Copy Link</span>
-                </button>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={downloadIcon}
+                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download {exportFormat.toUpperCase()}</span>
+                  </button>
                 
-                <button
-                  onClick={copySvg}
-                  className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-                >
-                  <Code className="w-4 h-4" />
-                  <span>Copy SVG</span>
-                </button>
+                  <button
+                    onClick={copyPath}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                  >
+                    <Copy className="w-4 h-4" />
+                    <span>Copy Link</span>
+                  </button>
+                
+                  <button
+                    onClick={copySvg}
+                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                  >
+                    <Code className="w-4 h-4" />
+                    <span>Copy SVG</span>
+                  </button>
+                </div>
               </div>
 
               {/* SVG Editor Controls */}
@@ -437,11 +581,11 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
                     
                     {isEditing && editedSvgContent && (
                       <button
-                        onClick={exportEditedSvg}
+                        onClick={exportEditedIcon}
                         className="flex items-center space-x-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded-lg transition-colors"
                       >
                         <FileDown className="w-3 h-3" />
-                        <span>Export Edited</span>
+                        <span>Export Edited {exportFormat.toUpperCase()}</span>
                       </button>
                     )}
                   </div>
@@ -449,7 +593,7 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
                   {isEditing && (
                     <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
                       <p className="text-xs text-blue-700 dark:text-blue-300">
-                        ✨ Icon has been edited! Use &quot;Export Edited&quot; to download with &quot;-edited&quot; suffix.
+                        ✨ Icon has been edited! Use "Export Edited" to download with "-edited" suffix.
                       </p>
                     </div>
                   )}
