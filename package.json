@@ -1,27 +1,48 @@
 {
   "name": "piraicons",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
+  "description": "Modern open source icons library with 25,380+ icons",
+  "private": false,
+  "keywords": [
+    "icons",
+    "svg",
+    "react",
+    "nextjs",
+    "open-source",
+    "ui"
+  ],
+  "author": "Hossein Pira",
+  "license": "MIT",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "export": "next build && next export",
+    "test-mongodb": "node scripts/test-mongodb.js"
   },
   "dependencies": {
+    "dotenv": "^17.2.1",
+    "framer-motion": "^10.18.0",
+    "lucide-react": "^0.263.1",
+    "mongodb": "^6.18.0",
+    "mongoose": "^8.17.0",
+    "next": "13.5.11",
     "react": "^18",
     "react-dom": "^18",
-    "next": "13.5.11"
+    "react-hot-toast": "^2.5.2",
+    "use-debounce": "^9.0.4"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10",
+    "critters": "^0.0.23",
+    "eslint": "^8",
+    "eslint-config-next": "13.5.11",
     "postcss": "^8",
     "tailwindcss": "^3",
-    "eslint": "^8",
-    "eslint-config-next": "13.5.11"
+    "typescript": "^5"
   }
 }
