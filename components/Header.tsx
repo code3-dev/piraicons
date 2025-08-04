@@ -20,7 +20,7 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden lg:flex items-center space-x-8">
             <Link href="/rounded" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
               Rounded Icons
             </Link>
@@ -47,40 +47,53 @@ export default function Header() {
               href="https://github.com/code3-dev/piraicons-assets/archive/refs/heads/master.zip"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden md:flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              className="hidden lg:flex items-center space-x-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm"
             >
               <Download className="w-4 h-4" />
-              <span>Download Full Package</span>
+              <span className="hidden xl:inline">Download Full Package</span>
+              <span className="xl:hidden">Download</span>
             </a>
 
-            {/* Mobile Menu Button */}
+            {/* Mobile/Tablet Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+              className="lg:hidden p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile/Tablet Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200 dark:border-gray-800">
-            <nav className="flex flex-col space-y-4">
-              <Link href="/rounded" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+          <div className="lg:hidden py-4 border-t border-gray-200 dark:border-gray-800">
+            <nav className="flex flex-col space-y-4 md:space-y-3">
+              <Link 
+                href="/rounded" 
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors py-2 md:py-1"
+                onClick={() => setIsMenuOpen(false)}
+              >
                 Rounded Icons
               </Link>
-              <Link href="/sharp" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+              <Link 
+                href="/sharp" 
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors py-2 md:py-1"
+                onClick={() => setIsMenuOpen(false)}
+              >
                 Sharp Icons
               </Link>
-              <Link href="/categories" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+              <Link 
+                href="/categories" 
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors py-2 md:py-1"
+                onClick={() => setIsMenuOpen(false)}
+              >
                 Categories
               </Link>
               <a
                 href="https://github.com/code3-dev/piraicons-assets/archive/refs/heads/master.zip"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors w-fit"
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors w-fit mt-2"
               >
                 <Download className="w-4 h-4" />
                 <span>Download Full Package</span>
