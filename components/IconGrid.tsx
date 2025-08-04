@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Copy, Download, Eye } from 'lucide-react'
+import { Eye, Copy, Download } from 'lucide-react'
 import { IconFile } from '@/types/icons'
-import IconPreview from '@/components/IconPreview'
 import toast from 'react-hot-toast'
+import IconPreview from './IconPreview'
+import Image from 'next/image'
 import { getIconService } from '@/lib/serviceConfig'
 
 interface IconGridProps {

@@ -593,7 +593,7 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
                   {isEditing && (
                     <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
                       <p className="text-xs text-blue-700 dark:text-blue-300">
-                        ✨ Icon has been edited! Use "Export Edited" to download with "-edited" suffix.
+                        ✨ Icon has been edited! Use &quot;Export Edited&quot; to download with &quot;-edited&quot; suffix.
                       </p>
                     </div>
                   )}
