@@ -50,7 +50,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         
         <SearchResults 
           searchParams={{
-            ...searchParams,
+            q: searchParams.q,
+            page: searchParams.page,
             category: categoryName
           }} 
         />

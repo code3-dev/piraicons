@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
+import LicensePopup from '@/components/LicensePopup'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -30,7 +31,8 @@ export default function RootLayout({
         <div className="min-h-screen">
           {children}
         </div>
-        <Toaster 
+        <LicensePopup />
+        <Toaster
           position="top-right"
           toastOptions={{
             duration: 3000,

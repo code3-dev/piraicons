@@ -112,7 +112,7 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
       // Use githubPath if available, otherwise fall back to the local path or API URL
       const iconUrl = icon.githubPath || getIconUrl(icon);
       navigator.clipboard.writeText(iconUrl)
-      toast.success('Path copied to clipboard!')
+      toast.success('Link copied to clipboard!')
     }
   }
 
@@ -255,7 +255,7 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
                   className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
                 >
                   <Copy className="w-4 h-4" />
-                  <span>Copy Path</span>
+                  <span>Copy Link</span>
                 </button>
                 
                 <button

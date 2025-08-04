@@ -54,7 +54,7 @@ export default function IconGrid({ icons }: IconGridProps) {
     // Use githubPath if available, otherwise fall back to the local path or API URL
     const iconUrl = icon.githubPath || getIconUrl(icon);
     navigator.clipboard.writeText(iconUrl)
-    toast.success('Icon path copied to clipboard!')
+    toast.success('Icon Link copied to clipboard!')
   }
 
   const downloadIcon = (icon: IconFile) => {
@@ -155,7 +155,7 @@ export default function IconGrid({ icons }: IconGridProps) {
                     <button
                       onClick={() => copyIconPath(icon)}
                       className="p-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
-                      title="Copy path"
+                      title="Copy Link"
                     >
                       <Copy className="w-4 h-4" />
                     </button>

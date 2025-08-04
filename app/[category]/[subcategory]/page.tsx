@@ -62,7 +62,8 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
         
         <SearchResults 
           searchParams={{
-            ...searchParams,
+            q: searchParams.q,
+            page: searchParams.page,
             category: categoryName,
             subcategory: subcategoryName
           }} 
