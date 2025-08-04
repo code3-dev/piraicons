@@ -1,6 +1,7 @@
 import IconGrid from '@/components/IconGrid'
 import SearchBar from '@/components/SearchBar'
 import { getIconService } from '@/lib/serviceConfig'
+import Link from 'next/link'
 
 interface SearchResultsProps {
   searchParams: {
@@ -69,8 +70,8 @@ export default async function SearchResults({ searchParams }: SearchResultsProps
               const { page = currentPage, totalPages = 1 } = results.pagination;
               
               return (
-                <div className="mt-8 flex justify-center">
-                  <nav className="flex items-center space-x-2" aria-label="Pagination">
+                <div className="mt-8 flex justify-center overflow-x-auto py-2 w-full">
+                  <nav className="flex flex-wrap items-center justify-center gap-2 px-4" aria-label="Pagination">
                     {/* Previous Page Button */}
                     <a
                       href={`?${new URLSearchParams({
@@ -80,7 +81,7 @@ export default async function SearchResults({ searchParams }: SearchResultsProps
                         ...(tag ? { tag } : {}),
                         page: Math.max(1, page - 1).toString()
                       }).toString()}`}
-                      className={`px-3 py-2 rounded-md ${page <= 1 
+                      className={`px-2 sm:px-3 py-2 rounded-md text-sm sm:text-base ${page <= 1 
                         ? 'text-gray-400 cursor-not-allowed' 
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                       aria-disabled={page <= 1}
@@ -89,7 +90,7 @@ export default async function SearchResults({ searchParams }: SearchResultsProps
                     </a>
                     
                     {/* Page Numbers */}
-                    <div className="flex items-center space-x-1">
+                    <div className="flex flex-wrap items-center gap-1">
                       {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                         // Show pages around current page
                         let pageNum;
@@ -117,7 +118,7 @@ export default async function SearchResults({ searchParams }: SearchResultsProps
                               ...(tag ? { tag } : {}),
                               page: pageNum.toString()
                             }).toString()}`}
-                            className={`px-4 py-2 rounded-md ${pageNum === page
+                            className={`min-w-[36px] h-[36px] flex items-center justify-center px-2 sm:px-3 py-1 text-sm sm:text-base rounded-md ${pageNum === page
                               ? 'bg-blue-600 text-white'
                               : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                             aria-current={pageNum === page ? 'page' : undefined}
@@ -129,7 +130,7 @@ export default async function SearchResults({ searchParams }: SearchResultsProps
                       
                       {/* Show ellipsis if there are more pages */}
                       {totalPages > 5 && page < totalPages - 2 && (
-                        <span className="px-2 py-2 text-gray-500">...</span>
+                        <span className="px-2 py-1 text-gray-500">...</span>
                       )}
                       
                       {/* Always show last page if not in view */}
@@ -143,7 +144,7 @@ export default async function SearchResults({ searchParams }: SearchResultsProps
                             ...(tag ? { tag } : {}),
                             page: totalPages.toString()
                           }).toString()}`}
-                          className="px-4 py-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          className="min-w-[36px] h-[36px] flex items-center justify-center px-2 sm:px-3 py-1 text-sm sm:text-base rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
                           {totalPages}
                         </a>
@@ -159,7 +160,7 @@ export default async function SearchResults({ searchParams }: SearchResultsProps
                         ...(tag ? { tag } : {}),
                         page: Math.min(totalPages, page + 1).toString()
                       }).toString()}`}
-                      className={`px-3 py-2 rounded-md ${page >= totalPages 
+                      className={`px-2 sm:px-3 py-2 rounded-md text-sm sm:text-base ${page >= totalPages 
                         ? 'text-gray-400 cursor-not-allowed' 
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                       aria-disabled={page >= totalPages}
@@ -180,9 +181,9 @@ export default async function SearchResults({ searchParams }: SearchResultsProps
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               Try different keywords or browse our categories
             </p>
-            <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+            <Link href="/categories" className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
               Browse Categories
-            </button>
+            </Link>
           </div>
         )}
       </div>

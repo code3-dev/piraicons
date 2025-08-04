@@ -51,7 +51,7 @@ export default function Hero({ totalIcons }: HeroProps) {
           transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
         >
-          <Link href="/categories" className="flex items-center space-x-3 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
+          <Link href="/search" className="flex items-center space-x-3 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
             <Search className="w-5 h-5" />
             <span>Explore Icons</span>
           </Link>
