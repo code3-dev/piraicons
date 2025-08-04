@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import SearchResults from '@/components/SearchResults'
 import Header from '@/components/Header'
+import FilterBar from '@/components/FilterBar'
 
 interface SearchPageProps {
   searchParams: {
@@ -18,6 +19,11 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
       <Header />
       
       <main className="container mx-auto px-4 py-8">
+        <FilterBar 
+          currentCategory={searchParams.category} 
+          currentSubcategory={searchParams.subcategory}
+          searchQuery={searchParams.q}
+        />
         <Suspense fallback={
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>

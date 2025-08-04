@@ -42,12 +42,7 @@ export default async function SearchResults({ searchParams }: SearchResultsProps
 
   return (
     <div className="space-y-8">
-      {/* Only show SearchBar on search page, not on category or subcategory pages */}
-      {!category && (
-        <div className="max-w-4xl mx-auto">
-          <SearchBar />
-        </div>
-      )}
+      {/* SearchBar is now handled by FilterBar component on search page */}
       
       <div>
         <div className="mb-6">

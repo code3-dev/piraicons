@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { getIconService } from '@/lib/serviceConfig'
 import Header from '@/components/Header'
 import SearchResults from '@/components/SearchResults'
-import CategorySearchBar from '@/components/CategorySearchBar'
+import FilterBar from '@/components/FilterBar'
 import BreadcrumbNav from '@/components/BreadcrumbNav'
 
 interface CategoryPageProps {
@@ -43,10 +43,11 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           className="mb-6"
         />
         
-        {/* Search Bar */}
-        <div className="max-w-4xl mx-auto mb-8">
-          <CategorySearchBar category={categoryName} />
-        </div>
+        {/* Filter Bar */}
+        <FilterBar 
+          currentCategory={categoryName}
+          searchQuery={searchParams.q}
+        />
         
         <SearchResults 
           searchParams={{
