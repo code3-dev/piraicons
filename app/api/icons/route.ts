@@ -12,7 +12,9 @@ export async function GET(request: NextRequest) {
     const category = request.nextUrl.searchParams.get('category') || undefined
     const subcategory = request.nextUrl.searchParams.get('subcategory') || undefined
     const tag = request.nextUrl.searchParams.get('tag') || undefined
-    const limit = parseInt(request.nextUrl.searchParams.get('limit') || '100')
+    const page = parseInt(request.nextUrl.searchParams.get('page') || '1')
+    const limit = parseInt(request.nextUrl.searchParams.get('limit') || '50')
+    // Keep offset for backward compatibility
     const offset = parseInt(request.nextUrl.searchParams.get('offset') || '0')
 
     const iconService = getIconService()
@@ -21,21 +23,26 @@ export async function GET(request: NextRequest) {
     const results = await iconService.fastSearchIcons(query, {
       category,
       subcategory,
-      tag
+      tag,
+      page,
+      limit
     })
 
-    // Apply pagination
-    const paginatedIcons = results.icons.slice(offset, offset + limit)
+    // For backward compatibility, apply additional offset if provided
+    const finalIcons = offset > 0 ? results.icons.slice(offset) : results.icons
 
     return NextResponse.json({
-      icons: paginatedIcons,
+      icons: finalIcons,
       totalCount: results.totalCount,
       categories: results.categories,
       tags: results.tags,
-      pagination: {
+      pagination: results.pagination || {
+        // Fallback for backward compatibility
         limit,
         offset,
-        hasMore: offset + limit < results.totalCount
+        page,
+        totalPages: Math.ceil(results.totalCount / limit),
+        hasMore: (page * limit) < results.totalCount
       }
     })
   } catch (error) {

@@ -40,6 +40,8 @@ export class IconService {
     category?: string;
     subcategory?: string;
     tag?: string;
+    page?: number;
+    limit?: number;
   }): Promise<SearchResult> {
     logger.info('Searching icons in MongoDB');
     return DbIconService.searchIcons(query, filters);
@@ -52,6 +54,8 @@ export class IconService {
     category?: string;
     subcategory?: string;
     tag?: string;
+    page?: number;
+    limit?: number;
   }): Promise<SearchResult> {
     logger.info('Fast searching icons in MongoDB');
     return DbIconService.fastSearchIcons(query, filters);

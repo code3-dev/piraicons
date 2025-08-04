@@ -35,4 +35,9 @@ export interface SearchResult {
   totalCount: number;
   categories: string[];
   tags: string[];
+  pagination?: {
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }

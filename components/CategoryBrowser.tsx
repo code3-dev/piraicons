@@ -147,65 +147,60 @@ export default function CategoryBrowser({ categories }: CategoryBrowserProps) {
                   </Link>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  {category.subcategories.slice(0, 4).map((subcategory) => (
-                    <Link
-                      key={subcategory.name}
-                      href={subcategory.path}
-                      className="p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors group"
-                    >
-                      <div className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                        {subcategory.name}
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">
-                        {subcategory.iconCount} icons
-                      </div>
-                    </Link>
-                  ))}
+                {/* Show all subcategories */}
+                <div className="mb-4">
+                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Styles:</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {category.subcategories.map((subcategory) => (
+                      <Link
+                        key={subcategory.name}
+                        href={subcategory.path}
+                        className="p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors group"
+                      >
+                        <div className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                          {subcategory.name}
+                        </div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400">
+                          {subcategory.iconCount} icons
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
 
-                {category.subcategories.length > 4 && (
-                  <div className="mt-3 text-center">
-                    <Link
-                      href={category.path}
-                      className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                    >
-                      +{category.subcategories.length - 4} more styles
-                    </Link>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center justify-between p-6 w-full">
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                    <Package className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {category.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {category.iconCount.toLocaleString()} icons • {category.subcategories.length} styles
-                    </p>
+                {/* Show all tags */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Tags:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {category.subcategories.flatMap(subcategory => 
+                      subcategory.tags.map(tag => (
+                        <Link
+                          key={`${subcategory.name}-${tag.name}`}
+                          href={`/search?q=${encodeURIComponent(tag.name)}`}
+                          className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full transition-colors"
+                        >
+                          {tag.name}
+                        </Link>
+                      ))
+                    )}
                   </div>
                 </div>
-                
-                <div className="flex items-center space-x-3">
-                  <div className="hidden sm:flex flex-wrap gap-1">
-                    {category.subcategories.slice(0, 3).map((sub) => (
-                      <span
-                        key={sub.name}
-                        className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded"
-                      >
-                        {sub.name}
-                      </span>
-                    ))}
-                    {category.subcategories.length > 3 && (
-                      <span className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
-                        +{category.subcategories.length - 3}
-                      </span>
-                    )}
+              </div>
+            ) : (
+              <div className="flex flex-col p-6 w-full">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                      <Package className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {category.name}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {category.iconCount.toLocaleString()} icons • {category.subcategories.length} styles
+                      </p>
+                    </div>
                   </div>
                   
                   <Link
@@ -214,6 +209,40 @@ export default function CategoryBrowser({ categories }: CategoryBrowserProps) {
                   >
                     <ArrowRight className="w-5 h-5" />
                   </Link>
+                </div>
+                
+                {/* Show all subcategories */}
+                <div className="mb-4">
+                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Styles:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {category.subcategories.map((sub) => (
+                      <Link
+                        key={sub.name}
+                        href={sub.path}
+                        className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded transition-colors"
+                      >
+                        {sub.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Show all tags */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Tags:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {category.subcategories.flatMap(subcategory => 
+                      subcategory.tags.map(tag => (
+                        <Link
+                          key={`${subcategory.name}-${tag.name}`}
+                          href={`/search?q=${encodeURIComponent(tag.name)}`}
+                          className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full transition-colors"
+                        >
+                          {tag.name}
+                        </Link>
+                      ))
+                    )}
+                  </div>
                 </div>
               </div>
             )}

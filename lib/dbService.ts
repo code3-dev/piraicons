@@ -134,6 +134,8 @@ export class DbIconService {
     category?: string;
     subcategory?: string;
     tag?: string;
+    page?: number;
+    limit?: number;
   }): Promise<SearchResult> {
     try {
       await connectToDatabase();
@@ -164,8 +166,27 @@ export class DbIconService {
         ];
       }
       
-      // Execute the search
-      const icons = await IconFileModel.find(searchQuery).lean();
+      // Set default pagination values
+      const page = filters?.page || 1;
+      const limit = filters?.limit || 50;
+      const skip = (page - 1) * limit;
+      
+      // Get total count for pagination
+      const totalCount = await IconFileModel.countDocuments(searchQuery);
+      
+      // Execute the search with pagination
+      const icons = await IconFileModel.find(searchQuery)
+        .skip(skip)
+        .limit(limit)
+        .lean();
+      
+      // Calculate total pages
+      const totalPages = Math.ceil(totalCount / limit);
+      
+      // Get all categories and tags for filtering (not paginated)
+      const allIcons = await IconFileModel.find(searchQuery, { category: 1, tag: 1 }).lean();
+      const categories = Array.from(new Set(allIcons.map(icon => icon.category)));
+      const tags = Array.from(new Set(allIcons.map(icon => icon.tag)));
       
       // Map Mongoose documents to IconFile interface
       const mappedIcons = icons.map(icon => ({
@@ -181,9 +202,14 @@ export class DbIconService {
       
       return {
         icons: mappedIcons,
-        totalCount: icons.length,
-        categories: Array.from(new Set(icons.map(icon => icon.category))),
-        tags: Array.from(new Set(icons.map(icon => icon.tag)))
+        totalCount,
+        categories,
+        tags,
+        pagination: {
+          page,
+          limit,
+          totalPages
+        }
       };
     } catch (error) {
       logger.error('Error searching icons in DB:', error);
@@ -222,6 +248,8 @@ export class DbIconService {
     category?: string;
     subcategory?: string;
     tag?: string;
+    page?: number;
+    limit?: number;
   }): Promise<SearchResult> {
     try {
       await connectToDatabase();
@@ -252,8 +280,27 @@ export class DbIconService {
         ];
       }
       
-      // Execute the search but exclude the SVG content for faster loading
-      const icons = await IconFileModel.find(searchQuery, { svg: 0 }).lean();
+      // Set default pagination values
+      const page = filters?.page || 1;
+      const limit = filters?.limit || 50;
+      const skip = (page - 1) * limit;
+      
+      // Get total count for pagination
+      const totalCount = await IconFileModel.countDocuments(searchQuery);
+      
+      // Execute the search with pagination but exclude the SVG content for faster loading
+      const icons = await IconFileModel.find(searchQuery, { svg: 0 })
+        .skip(skip)
+        .limit(limit)
+        .lean();
+      
+      // Calculate total pages
+      const totalPages = Math.ceil(totalCount / limit);
+      
+      // Get all categories and tags for filtering (not paginated)
+      const allIcons = await IconFileModel.find(searchQuery, { category: 1, tag: 1 }).lean();
+      const categories = Array.from(new Set(allIcons.map(icon => icon.category)));
+      const tags = Array.from(new Set(allIcons.map(icon => icon.tag)));
       
       // Map Mongoose documents to IconFile interface
       const mappedIcons = icons.map(icon => ({
@@ -269,9 +316,14 @@ export class DbIconService {
       
       return {
         icons: mappedIcons,
-        totalCount: icons.length,
-        categories: Array.from(new Set(icons.map(icon => icon.category))),
-        tags: Array.from(new Set(icons.map(icon => icon.tag)))
+        totalCount,
+        categories,
+        tags,
+        pagination: {
+          page,
+          limit,
+          totalPages
+        }
       };
     } catch (error) {
       logger.error('Error fast searching icons in DB:', error);

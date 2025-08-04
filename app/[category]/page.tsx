@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation'
 import { getIconService } from '@/lib/serviceConfig'
 import Header from '@/components/Header'
 import SearchResults from '@/components/SearchResults'
+import CategorySearchBar from '@/components/CategorySearchBar'
+import BreadcrumbNav from '@/components/BreadcrumbNav'
 
 interface CategoryPageProps {
   params: {
@@ -9,6 +11,7 @@ interface CategoryPageProps {
   }
   searchParams: {
     q?: string
+    page?: string
   }
 }
 
@@ -30,6 +33,21 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       <Header />
       
       <main className="container mx-auto px-4 py-8">
+        {/* Breadcrumb Navigation */}
+        <BreadcrumbNav 
+          items={[
+            { name: 'Home', href: '/' },
+            { name: 'Categories', href: '/categories' },
+            { name: categoryName, href: `/${category}` }
+          ]} 
+          className="mb-6"
+        />
+        
+        {/* Search Bar */}
+        <div className="max-w-4xl mx-auto mb-8">
+          <CategorySearchBar category={categoryName} />
+        </div>
+        
         <SearchResults 
           searchParams={{
             ...searchParams,

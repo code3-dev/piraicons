@@ -8,6 +8,7 @@ interface SearchPageProps {
     category?: string
     subcategory?: string
     tag?: string
+    page?: string
   }
 }
 
