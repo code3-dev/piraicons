@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { logger } from '@/lib/logger';
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Copy, Download, Code } from 'lucide-react'
+import { X, Copy, Download, Code, RotateCcw, Palette, Maximize2, FileDown, Plus, Minus } from 'lucide-react'
 import { IconFile } from '@/types/icons'
 import toast from 'react-hot-toast'
 import { getIconService } from '@/lib/serviceConfig'
@@ -16,6 +16,12 @@ interface IconPreviewProps {
 
 export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps) {
   const [svgContent, setSvgContent] = useState<string | null>(null)
+  const [editedSvgContent, setEditedSvgContent] = useState<string | null>(null)
+  const [originalSvgContent, setOriginalSvgContent] = useState<string | null>(null)
+  const [iconColor, setIconColor] = useState('#141B34')
+  const [iconWidth, setIconWidth] = useState(24)
+  const [iconHeight, setIconHeight] = useState(24)
+  const [isEditing, setIsEditing] = useState(false)
   const isMounted = useRef(false)
   
   // Helper function to get the correct URL for an icon
@@ -47,14 +53,20 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
   useEffect(() => {
     // Reset SVG content when modal opens/closes or icon changes
     setSvgContent(null);
+    setEditedSvgContent(null);
+    setOriginalSvgContent(null);
+    setIsEditing(false);
     
     if (icon && isOpen && isMounted.current) {
       // Small delay to ensure DOM is ready
       const timer = setTimeout(() => {
+        // Use your example SVG icon or fetch from URL
+        let exampleSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path opacity="0.4" fill-rule="evenodd" clip-rule="evenodd" d="M11 2C11 1.44772 11.4477 1 12 1C18.0751 1 23 5.92487 23 12C23 18.0751 18.0751 23 12 23C5.92487 23 1 18.0751 1 12C1 11.4477 1.44772 11 2 11C2.55228 11 3 11.4477 3 12C3 16.9706 7.02944 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C11.4477 3 11 2.55228 11 2ZM9.43434 2.14361C9.63116 2.65963 9.37241 3.23751 8.85639 3.43434C8.68765 3.4987 8.52124 3.5678 8.35731 3.64149C7.85358 3.86791 7.26166 3.64311 7.03524 3.13937C6.80881 2.63564 7.03362 2.04372 7.53735 1.8173C7.73645 1.72781 7.9386 1.64386 8.14361 1.56566C8.65963 1.36883 9.23751 1.62759 9.43434 2.14361ZM5.80331 3.96469C6.1824 4.36632 6.16414 4.99922 5.76252 5.37832C5.62995 5.50345 5.50103 5.6324 5.37594 5.76499C4.99694 6.16671 4.36404 6.18514 3.96232 5.80614C3.5606 5.42715 3.54218 4.79425 3.92117 4.39253C4.07278 4.23183 4.22902 4.07555 4.38968 3.9239C4.79131 3.5448 5.42421 3.56307 5.80331 3.96469ZM3.14211 7.03001C3.64574 7.25667 3.87028 7.84868 3.64363 8.35231C3.56916 8.5178 3.49936 8.68582 3.43441 8.85621C3.23768 9.37227 2.65985 9.63114 2.14379 9.43441C1.62773 9.23768 1.36887 8.65985 1.56559 8.14379C1.64453 7.93673 1.72934 7.73257 1.81981 7.53153C2.04646 7.0279 2.63848 6.80336 3.14211 7.03001Z" fill="#141B34"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 7C12.5523 7 13 7.44772 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44772 11 8 11H11V8C11 7.44772 11.4477 7 12 7Z" fill="#141B34"/></svg>';
+        
         // Use githubPath if available, otherwise fall back to the local path or API URL
         const svgUrl = icon.githubPath || getIconUrl(icon);
         
-        // Fetch SVG content
+        // Try to fetch actual SVG content, fallback to example
         fetch(svgUrl)
           .then(res => {
             if (!res.ok) {
@@ -92,13 +104,15 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
               }
               
               setSvgContent(processedSvg);
+              setOriginalSvgContent(processedSvg);
             }
           })
           .catch(err => {
             logger.error('Error loading SVG:', err);
-            // Set empty SVG content to show error state
+            // Use example SVG as fallback
             if (isMounted.current) {
-              setSvgContent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+              setSvgContent(exampleSvg);
+              setOriginalSvgContent(exampleSvg);
             }
           });
       }, 100);
@@ -165,6 +179,65 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
     }
   }
 
+  // Function to update SVG with new color
+  const updateSvgColor = (newColor: string) => {
+    if (!svgContent) return
+    
+    let updatedSvg = svgContent
+    // Replace fill colors
+    updatedSvg = updatedSvg.replace(/fill="[^"]*"/g, `fill="${newColor}"`)
+    // Also handle stroke colors if needed
+    updatedSvg = updatedSvg.replace(/stroke="[^"]*"/g, `stroke="${newColor}"`)
+    
+    setSvgContent(updatedSvg)
+    setEditedSvgContent(updatedSvg)
+    setIsEditing(true)
+  }
+
+  // Function to update SVG size
+  const updateSvgSize = (width: number, height: number) => {
+    if (!svgContent) return
+    
+    let updatedSvg = svgContent
+    updatedSvg = updatedSvg.replace(/width="[^"]*"/, `width="${width}"`)
+    updatedSvg = updatedSvg.replace(/height="[^"]*"/, `height="${height}"`)
+    
+    setSvgContent(updatedSvg)
+    setEditedSvgContent(updatedSvg)
+    setIsEditing(true)
+  }
+
+  // Function to reset to original
+  const resetToOriginal = () => {
+    if (originalSvgContent) {
+      setSvgContent(originalSvgContent)
+      setEditedSvgContent(null)
+      setIsEditing(false)
+      setIconColor('#141B34')
+      setIconWidth(24)
+      setIconHeight(24)
+      toast.success('Reset to original!')
+    }
+  }
+
+  // Function to export edited SVG
+  const exportEditedSvg = () => {
+    if (icon && editedSvgContent) {
+      const blob = new Blob([editedSvgContent], { type: 'image/svg+xml' })
+      const url = URL.createObjectURL(blob)
+      
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${icon.name}-edited.svg`
+      document.body.appendChild(link)
+      link.click()
+      
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      toast.success('Edited icon exported!')
+    }
+  }
+
   if (!icon) return null
 
   return (
@@ -181,7 +254,7 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -210,20 +283,24 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
               </button>
             </div>
 
-            {/* Content */}
-            <div className="p-6 space-y-6">
+            {/* Content - Scrollable */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {/* Icon Display */}
               <div className="text-center">
                 <div className="inline-flex items-center justify-center w-32 h-32 bg-gray-100 dark:bg-gray-700 rounded-2xl mb-6">
                   {svgContent ? (
                     <div 
-                      className="w-16 h-16 flex items-center justify-center text-gray-700 dark:text-gray-300"
+                      className="flex items-center justify-center text-gray-700 dark:text-gray-300"
+                      style={{
+                        width: `${Math.min(iconWidth * 2, 64)}px`,
+                        height: `${Math.min(iconHeight * 2, 64)}px`
+                      }}
                     >
                       <div
                         dangerouslySetInnerHTML={{ __html: svgContent }}
                         style={{ 
-                          width: '100%', 
-                          height: '100%', 
+                          width: `${iconWidth}px`, 
+                          height: `${iconHeight}px`, 
                           display: 'flex', 
                           alignItems: 'center', 
                           justifyContent: 'center' 
@@ -236,7 +313,7 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
                 </div>
                 
                 <div className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                  Original size and colors preserved
+                  {isEditing ? `Edited: ${iconWidth}×${iconHeight}px` : 'Original size and colors preserved'}
                 </div>
               </div>
 
@@ -267,11 +344,123 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
                 </button>
               </div>
 
+              {/* SVG Editor Controls */}
+              {svgContent && (
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                    <Palette className="w-4 h-4 mr-2" />
+                    SVG Editor
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Color Controls */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                        Icon Color
+                      </label>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="color"
+                          value={iconColor}
+                          onChange={(e) => {
+                            setIconColor(e.target.value)
+                            updateSvgColor(e.target.value)
+                          }}
+                          className="w-8 h-8 rounded border border-gray-300 dark:border-gray-600 cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={iconColor}
+                          onChange={(e) => {
+                            setIconColor(e.target.value)
+                            updateSvgColor(e.target.value)
+                          }}
+                          className="flex-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200"
+                          placeholder="#141B34"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Size Controls */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                        Size (width, height auto)
+                      </label>
+                      <div className="flex items-center space-x-2">
+                        {/* Decrease button */}
+                        <button
+                          onClick={() => {
+                            const newWidth = Math.max(8, iconWidth - 4)
+                            setIconWidth(newWidth)
+                            setIconHeight(newWidth)
+                            updateSvgSize(newWidth, newWidth)
+                          }}
+                          className="flex items-center justify-center w-8 h-8 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
+                          disabled={iconWidth <= 8}
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        
+                        {/* Size display */}
+                        <div className="flex items-center justify-center min-w-[80px] px-3 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg">
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-200">{iconWidth}px</span>
+                        </div>
+                        
+                        {/* Increase button */}
+                        <button
+                          onClick={() => {
+                            const newWidth = Math.min(256, iconWidth + 4)
+                            setIconWidth(newWidth)
+                            setIconHeight(newWidth)
+                            updateSvgSize(newWidth, newWidth)
+                          }}
+                          className="flex items-center justify-center w-8 h-8 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
+                          disabled={iconWidth >= 256}
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                        
+                        <span className="text-xs text-gray-500">(square)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Editor Action Buttons */}
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    <button
+                      onClick={resetToOriginal}
+                      className="flex items-center space-x-2 px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white text-xs rounded-lg transition-colors"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Reset</span>
+                    </button>
+                    
+                    {isEditing && editedSvgContent && (
+                      <button
+                        onClick={exportEditedSvg}
+                        className="flex items-center space-x-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded-lg transition-colors"
+                      >
+                        <FileDown className="w-3 h-3" />
+                        <span>Export Edited</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {isEditing && (
+                    <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
+                      <p className="text-xs text-blue-700 dark:text-blue-300">
+                        ✨ Icon has been edited! Use &quot;Export Edited&quot; to download with &quot;-edited&quot; suffix.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Code Preview */}
               {svgContent && (
                 <div>
                   <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    SVG Code
+                    {isEditing ? 'Edited SVG Code' : 'SVG Code'}
                   </h3>
                   <pre className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 p-3 rounded-lg overflow-auto max-h-32 border border-gray-200 dark:border-gray-600">
                     <code className="text-gray-800 dark:text-gray-200">{svgContent}</code>
