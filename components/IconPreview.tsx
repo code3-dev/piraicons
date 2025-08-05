@@ -25,6 +25,24 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
   const [exportFormat, setExportFormat] = useState<'svg' | 'png'>('svg')
   const isMounted = useRef(false)
   
+  // Function to reset all states to default
+  const resetToDefaults = () => {
+    setSvgContent(null)
+    setEditedSvgContent(null)
+    setOriginalSvgContent(null)
+    setIconColor('#141B34')
+    setIconWidth(24)
+    setIconHeight(24)
+    setIsEditing(false)
+    setExportFormat('svg')
+  }
+  
+  // Enhanced onClose function that resets to defaults
+  const handleClose = () => {
+    resetToDefaults()
+    onClose()
+  }
+  
   // Helper function to get the correct URL for an icon
   const getIconUrl = (icon: IconFile): string => {
     // If it's already a full URL, return it as is
@@ -52,7 +70,13 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
 
   // Load SVG content only after component is mounted
   useEffect(() => {
-    // Reset SVG content when modal opens/closes or icon changes
+    // Reset to defaults when modal opens/closes or icon changes
+    if (!isOpen) {
+      resetToDefaults();
+      return;
+    }
+    
+    // Reset SVG content when modal opens or icon changes
     setSvgContent(null);
     setEditedSvgContent(null);
     setOriginalSvgContent(null);
@@ -377,7 +401,7 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-          onClick={onClose}
+          onClick={handleClose}
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
@@ -405,7 +429,7 @@ export default function IconPreview({ icon, isOpen, onClose }: IconPreviewProps)
                 </div>
               </div>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               >
                 <X className="w-6 h-6" />
