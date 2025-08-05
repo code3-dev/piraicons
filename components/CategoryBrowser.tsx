@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Package, Search, Filter, Grid, List, Loader2 } from 'lucide-react'
+import { ArrowRight, Package, Grid, List } from 'lucide-react'
 import { IconCategory } from '@/types/icons'
 
 interface CategoryBrowserProps {
@@ -11,108 +11,49 @@ interface CategoryBrowserProps {
 }
 
 export default function CategoryBrowser({ categories }: CategoryBrowserProps) {
-  const [searchTerm, setSearchTerm] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [sortBy, setSortBy] = useState<'name' | 'count'>('name')
-  const [isSearching, setIsSearching] = useState(false)
-  
-  // Use effect to handle the loading state
-  useEffect(() => {
-    if (isSearching) {
-      // Set a timeout to stop the loading state after filtering is complete
-      const timer = setTimeout(() => {
-        setIsSearching(false);
-      }, 500);
-      
-      // Clean up the timer
-      return () => clearTimeout(timer);
-    }
-  }, [searchTerm, isSearching]);
-
-  // Filter and sort categories
-  const filteredCategories = categories
-    .filter(category => 
-      category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      category.subcategories.some(sub => 
-        sub.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sub.tags.some(tag => tag.name.toLowerCase().includes(searchTerm.toLowerCase()))
-      )
-    )
-    .sort((a, b) => {
-      if (sortBy === 'name') {
-        return a.name.localeCompare(b.name)
-      } else {
-        return b.iconCount - a.iconCount
-      }
-    })
 
   return (
-    <div className="space-y-8">
-      {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search categories..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setIsSearching(true);
-            }}
-            className="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 dark:placeholder-gray-400"
-          />
-          {isSearching && (
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <Loader2 className="w-4 h-4 text-blue-600 dark:text-blue-400 animate-spin" />
-            </div>
-          )}
-        </div>
+    <div className="space-y-6">
+      {/* View Controls */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Browse Categories
+        </h2>
         
-        <div className="flex items-center space-x-4">
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'name' | 'count')}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+        <div className="flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden">
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`px-3 py-2 text-sm font-medium transition-colors ${
+              viewMode === 'grid' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
           >
-            <option value="name">Sort by Name</option>
-            <option value="count">Sort by Icon Count</option>
-          </select>
-          
-          <div className="flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 ${viewMode === 'grid' 
+            <Grid className="w-4 h-4 mr-2 inline" />
+            Grid
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            className={`px-3 py-2 text-sm font-medium transition-colors ${
+              viewMode === 'list' 
                 ? 'bg-blue-600 text-white' 
                 : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-              }`}
-            >
-              <Grid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-2 ${viewMode === 'list' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-              }`}
-            >
-              <List className="w-4 h-4" />
-            </button>
-          </div>
+            }`}
+          >
+            <List className="w-4 h-4 mr-2 inline" />
+            List
+          </button>
         </div>
       </div>
 
-      {/* Results count */}
-      <div className="text-sm text-gray-600 dark:text-gray-400">
-        Showing {filteredCategories.length} of {categories.length} categories
-      </div>
 
       {/* Categories */}
       <div className={viewMode === 'grid' 
         ? 'grid gap-6 md:grid-cols-2' 
         : 'space-y-4'
       }>
-        {filteredCategories.map((category, index) => (
+        {categories.map((category, index) => (
           <motion.div
             key={category.name}
             initial={{ opacity: 0, y: 20 }}
@@ -172,17 +113,17 @@ export default function CategoryBrowser({ categories }: CategoryBrowserProps) {
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Tags:</h4>
                   <div className="flex flex-wrap gap-2">
-                    {category.subcategories.flatMap(subcategory => 
-                      subcategory.tags.map(tag => (
-                        <Link
-                          key={`${subcategory.name}-${tag.name}`}
-                          href={`/search?q=${encodeURIComponent(tag.name)}`}
-                          className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full transition-colors"
-                        >
-                          {tag.name}
-                        </Link>
-                      ))
-                    )}
+                    {[...new Set(category.subcategories.flatMap(subcategory => 
+                      subcategory.tags.map(tag => tag.name)
+                    ))].map(tagName => (
+                      <Link
+                        key={tagName}
+                        href={`/search?q=${encodeURIComponent(tagName)}`}
+                        className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full transition-colors"
+                      >
+                        {tagName}
+                      </Link>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -231,17 +172,17 @@ export default function CategoryBrowser({ categories }: CategoryBrowserProps) {
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Tags:</h4>
                   <div className="flex flex-wrap gap-2">
-                    {category.subcategories.flatMap(subcategory => 
-                      subcategory.tags.map(tag => (
-                        <Link
-                          key={`${subcategory.name}-${tag.name}`}
-                          href={`/search?q=${encodeURIComponent(tag.name)}`}
-                          className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full transition-colors"
-                        >
-                          {tag.name}
-                        </Link>
-                      ))
-                    )}
+                    {[...new Set(category.subcategories.flatMap(subcategory => 
+                      subcategory.tags.map(tag => tag.name)
+                    ))].map(tagName => (
+                      <Link
+                        key={tagName}
+                        href={`/search?q=${encodeURIComponent(tagName)}`}
+                        className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full transition-colors"
+                      >
+                        {tagName}
+                      </Link>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -250,25 +191,6 @@ export default function CategoryBrowser({ categories }: CategoryBrowserProps) {
         ))}
       </div>
 
-      {filteredCategories.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-4xl mb-4">🔍</div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            No categories found
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400">
-            Try different search terms or clear the search to see all categories
-          </p>
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm('')}
-              className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            >
-              Clear Search
-            </button>
-          )}
-        </div>
-      )}
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import Header from '@/components/Header'
 import CategoryBrowser from '@/components/CategoryBrowser'
 import BreadcrumbNav from '@/components/BreadcrumbNav'
+import FilterBar from '@/components/FilterBar'
 import { getIconService } from '@/lib/serviceConfig'
 
 export const metadata = {
@@ -70,6 +71,9 @@ export default async function CategoriesPage() {
             <div className="text-gray-600 dark:text-gray-400">Tags</div>
           </div>
         </div>
+
+        {/* Search Form */}
+        <FilterBar />
 
         <Suspense fallback={
           <div className="flex items-center justify-center py-20">
